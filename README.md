@@ -1,50 +1,56 @@
-# Crossword Downloader
+# NYT Crossword Downloader
 
-Download NYT crossword puzzles in JSON format.
+Download NYT crossword puzzle JSON data.
 
-**NOTE:** This tool requires that you have a [NYT crossword subscription](https://www.nytimes.com/subscription/crosswords).
+**NOTE:** Without a [NYT crossword subscription](https://www.nytimes.com/subscription/crosswords), you will only be able to access meta-information about the crosswords (e.g. title, date, author, etc.). In order to get the actual puzzle data, you will need a paid subscription. See the [Cookies section below](#cookies) for information on how to download your browser cookies.
 
 ## Installation
 
 ```bash
-pip install git+https://github.com/benshanahan1/crossword_downloader
+pip install git+https://github.com/benshanahan1/nyt_crossword_downloader
 ```
 
 ## Usage
 
 ```text
-$ crossword_downloader --help
-usage: crossword_downloader [-h] [--date DATE] [--puzzle-id PUZZLE_ID]
-                            [--download-type {json,puz}]
-                            cookies destination
+$ nyt_crossword_downloader --help
+usage: nyt_crossword_downloader [-h] [--cookies COOKIES] [--date DATE]
+                                [--puzzle-id PUZZLE_ID] [--date-folders]
+                                destination
 
 Download NYT crossword puzzles.
 
 positional arguments:
-  cookies               NYT cookie text file.
   destination           Folder where crossword data will be written.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --date DATE, -d DATE  Date to download.
+  --cookies COOKIES, -c COOKIES
+                        NYT cookies.txt file for authentication.
+  --date DATE, -d DATE  Download a puzzle from a particular date.
   --puzzle-id PUZZLE_ID, -p PUZZLE_ID
-                        Puzzle ID to download.
-  --download-type {json,puz}
-                        Type of download, JSON or PUZ.
+                        Download a particular puzzle ID.
+  --date-folders        Place downloaded puzzles into folders organized by
+                        year and month. Default is completely flat folder
+                        structure.
 ```
 
 Examples:
 
 ```bash
-# download today's puzzle in json format
-crossword_downloader ~/desktop/nyt-cookie.txt ~/desktop/puzzles
+# download today's puzzle meta (no auth required)
+nyt_crossword_downloader ~/puzzles
 
-# download today's puzzle in puz format
-crossword_downloader ~/desktop/nyt-cookie.txt ~/desktop/puzzles --download-type puz
+# download today's puzzle
+nyt_crossword_downloader ~/puzzles --cookies ~/cookies.txt
 
-# download puzzle from Jan 1, 2000
-crossword_downloader ~/desktop/nyt-cookie.txt ~/desktop/puzzles --date 2000-01-01
-
-# download puzzle with ID 4111
-crossword_downloader ~/desktop/nyt-cookie.txt ~/desktop/puzzles --puzzle-id 4111
+# download puzzle from 1/1/2000
+nyt_crossword_downloader ~/puzzles --cookies ~/cookies.txt --date 2000-01-01
 ```
+
+## Cookies
+
+In order to use this tool, you need to download your NYT cookies (information stored in your web browser that tells NYT's servers that you're logged into your account). The steps are as follows:
+
+1. Navigate to the [NYT crosswords page](https://nytimes.com/crosswords) and login.
+2. Use the [cookies.txt Chrome extension](https://chrome.google.com/webstore/detail/cookiestxt/njabckikapfpffapmjgojcnbfjonfjfg?hl=en) to download your cookies and place the file somewhere secure on your computer.
