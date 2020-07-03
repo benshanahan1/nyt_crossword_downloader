@@ -10,6 +10,6 @@ setup(
     extras_require={"dev": ["black", "flake8", "pytest", "pytest-pep8", "pytest-cov"]},
     entry_points="""
         [console_scripts]
-        nyt_crossword_downloader=src.__init__:main
+        nyt_crossword_downloader=nyt_crossword_downloader.__init__:main
     """,
 )
