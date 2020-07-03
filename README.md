@@ -35,17 +35,34 @@ optional arguments:
                         structure.
 ```
 
-Examples:
+CLI examples:
 
 ```bash
 # download today's puzzle meta (no auth required)
-nyt_crossword_downloader ~/puzzles
+nyt_crossword_downloader ~/puzzles/
 
 # download today's puzzle
-nyt_crossword_downloader ~/puzzles --cookies ~/cookies.txt
+nyt_crossword_downloader ~/puzzles/ --cookies ~/cookies.txt
 
 # download puzzle from 1/1/2000
-nyt_crossword_downloader ~/puzzles --cookies ~/cookies.txt --date 2000-01-01
+nyt_crossword_downloader ~/puzzles/ --cookies ~/cookies.txt --date 2000-01-01
+```
+
+The `RangeDownloader` class can be used to download a date range of puzzles all at once, e.g.:
+
+```python
+from nyt_crossword_downloader import RangeDownloader
+from datetime import datetime
+
+r = RangeDownloader(
+    "~/puzzles",
+    "~/cookies.txt",
+    date_folders=True,
+    secs_btwn_queries=10,
+)
+date_start = datetime(2020, 1, 1)
+date_stop = datetime(2020, 1, 31)
+r.download_date_range(date_start, date_stop)
 ```
 
 ## Cookies
