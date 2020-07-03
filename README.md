@@ -55,8 +55,8 @@ from nyt_crossword_downloader import RangeDownloader
 from datetime import datetime
 
 r = RangeDownloader(
-    "~/puzzles",
-    "~/cookies.txt",
+    destination="~/puzzles",
+    cookie_file="~/cookies.txt",
     date_folders=True,
     secs_btwn_queries=10,
 )
