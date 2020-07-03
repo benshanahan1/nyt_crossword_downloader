@@ -28,18 +28,25 @@ class CLIArgs:
     def build_parser(self):
         today = Puzzle.format_date(datetime.now())
         parser = ArgumentParser(description="Download NYT crossword puzzles.")
-        parser.add_argument("cookies", help="NYT cookie text file.")
         parser.add_argument(
             "destination", help="Folder where crossword data will be written."
         )
-        parser.add_argument("--date", "-d", default=today, help="Date to download.")
         parser.add_argument(
-            "--puzzle-id", "-p", type=int, help="Puzzle ID to download."
+            "--cookies", "-c", help="NYT cookies.txt file for authentication."
+        )
+        parser.add_argument(
+            "--date",
+            "-d",
+            default=today,
+            help="Download a puzzle from a particular date.",
+        )
+        parser.add_argument(
+            "--puzzle-id", "-p", type=int, help="Download a particular puzzle ID."
         )
         parser.add_argument(
             "--date-folders",
             action="store_true",
-            help="Place downloaded puzzles into folders by year and month. Default is completely flat folder structure.",
+            help="Place downloaded puzzles into folders organized by year and month. Default is completely flat folder structure.",
         )
         return parser
 
@@ -53,13 +60,19 @@ class Puzzle:
     def __init__(self, cookies):
         self.cookies = cookies
 
+    def get_results_from_json(self, data):
+        try:
+            return data["results"][0]
+        except Exception:
+            raise MissingPuzzleData("No data could be found for this puzzle!")
+
     def get_puzzle_id_by_date(self, dt):
         d = self.format_date(dt)
         url = self.URL_RECENT_PUZZLES.format(date_start=d, date_end=d)
         resp = requests.get(url)
         try:
             resp_json = resp.json()
-            return resp_json["results"][0]["puzzle_id"]
+            return self.get_results_from_json(resp_json)["puzzle_id"]
         except Exception:
             return None
 
@@ -70,7 +83,7 @@ class Puzzle:
 
     def get_puzzle_date(self, data, return_date_str=False):
         try:
-            date_str = data["results"][0]["puzzle_meta"]["printDate"]
+            date_str = self.get_results_from_json(data)["puzzle_meta"]["printDate"]
         except KeyError:
             raise MissingPuzzleData("No data could be found for this puzzle!")
         else:
@@ -115,6 +128,8 @@ class Cookies:
         See: https://stackoverflow.com/a/54659484/5161222
         """
         cookies = {}
+        if cookie_file is None:
+            return cookies
         with open(cookie_file, "r") as fd:
             for line in fd:
                 if not re.match(r"^\#", line):
@@ -161,16 +176,19 @@ def main():
     puzzle = Puzzle(cookies)
     file_system = FileSystem(puzzle, args.destination, args.date_folders)
 
-    if args.puzzle_id is None:
-        puzzle_id, puzzle_date, puzzle_data = puzzle.get_puzzle_data_by_date(
-            parse_dt_str(args.date)
-        )
+    try:
+        if args.puzzle_id is None:
+            puzzle_id, puzzle_date, puzzle_data = puzzle.get_puzzle_data_by_date(
+                parse_dt_str(args.date)
+            )
+        else:
+            puzzle_id, puzzle_date, puzzle_data = puzzle.get_puzzle_data_by_id(
+                args.puzzle_id
+            )
+    except Exception as error:
+        print(str(error))
+        exit(1)
     else:
-        puzzle_id, puzzle_date, puzzle_data = puzzle.get_puzzle_data_by_id(
-            args.puzzle_id
-        )
-
-    # Write puzzle to disk.
-    path = file_system.write_to_disk(puzzle_id, puzzle_date, puzzle_data)
-    puzzle_date_str = puzzle.format_date(puzzle_date)
-    print(f"Downloaded {puzzle_date_str} puzzle (ID: {puzzle_id}) to: {path}")
+        path = file_system.write_to_disk(puzzle_id, puzzle_date, puzzle_data)
+        puzzle_date_str = puzzle.format_date(puzzle_date)
+        print(f"Downloaded {puzzle_date_str} puzzle (ID: {puzzle_id}) to: {path}")
